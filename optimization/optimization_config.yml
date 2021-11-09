@@ -1,0 +1,12 @@
+test:
+  value: 2
+  iterations: 10
+  progress_bar: True
+
+CMA-ES:
+  tau: 0.009
+  length_limits: [0, 0.01]
+  iterations: 10
+  seed: 42
+  frequency: 6400
+  sphere_radius: 0.02

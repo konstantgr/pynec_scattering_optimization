@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from geometry import Geometry
 
 
@@ -38,12 +39,13 @@ def get_scattering_in_frequency_range(geometry, frequency_range: range) -> dict:
 
     c_const = 299792458
     scattering_array = []
-    # wires = geometry.wires
+    wires = geometry.wires
 
     for frequency in frequency_range:
         lmbda = c_const / (frequency * 1e6)
-        geometry.context = plane_wave(geometry.context, frequency)
-        rp = geometry.context.get_radiation_pattern(0)
+        g = Geometry(wires)
+        g.context = plane_wave(g.context, frequency)
+        rp = g.context.get_radiation_pattern(0)
         scattering_db = rp.get_gain()[0][:]
 
         scattering = (10.0**(scattering_db / 10.0)) * lmbda**2

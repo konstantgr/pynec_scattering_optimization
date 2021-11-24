@@ -1,12 +1,14 @@
 import numpy as np
 import time
 import json
+import matplotlib.pyplot as plt
+
 from cmaes import CMA
 from tqdm import tqdm
 
 from geometry.simple_geometries import get_cubic_geometry
-from pynec_utils.scattering import get_scattering_in_frequency_range
-from plotting_utils.plot_geometry import plot_geometry_3d
+from pynec_utils import get_scattering_in_frequency_range
+from plotting_utils import plot_geometry_3d, scattering_plot, plot_single_wire_scattering
 
 
 class Optimizator:
@@ -16,6 +18,7 @@ class Optimizator:
             'CMA-ES': self.cma_optimizer
         }
         self.kind = kind
+        self.configs = {}
         self.best_results = {}
 
         self._opt = self.optimizators_mapping[kind]
@@ -25,18 +28,55 @@ class Optimizator:
     #
 
     def run(self, geometry, config: dict):
+        self.configs[self.kind] = config
         return self._opt(geometry, **config)
 
-    def save_results(self):
+    def plot_results(self, kind=None, save=False):
+        if kind is None:
+            kind = self.kind
+
+        best_geometry = self.best_results[kind]['geometry']
+
+        fig = plt.figure(figsize=plt.figaspect(2.))
+        ax = fig.add_subplot(2, 1, 2)
+        scattering_plot(ax, best_geometry)
+
+        ax = fig.add_subplot(2, 1, 1, projection='3d')
+        plot_geometry_3d(ax, best_geometry)
+
+        if save:
+            s = f'{kind}__'
+            for key, value in self.configs[kind].items():
+                s += f'{key}_{value}__'
+            filename = s.rstrip('__') + '.png'
+
+            fig.savefig(f'data/optimization_results/images/{filename}',
+                        bbox_inches='tight', dpi=150)
+            print('Image saved successfully')
+
+        plt.show()
+
+    def save_results(self, kind=None):
+        if kind is None:
+            kind = self.kind
+
+        if kind not in self.best_results.keys():
+            raise Exception(f"Doesn't have results of {kind} optimizer")
+
         result_dict = {
-            'kind': self.kind,
-            'best_geometry': self.best_results['geometry'].to_dict(),
-            'best_result': self.best_results['optimized_value']
+            'kind': kind,
+            'optimizator_config': self.configs[kind],
+            'best_geometry': self.best_results[kind]['geometry'].to_dict(),
+            'best_result': self.best_results[kind]['optimized_value']
         }
 
-        with open('data/optimization_results/configs/test2.json', 'w+') as fp:
-            json.dump(result_dict, fp)
+        s = f'{kind}__'
+        for key, value in self.configs[kind].items():
+            s += f'{key}_{value}__'
+        filename = s.rstrip('__') + '.json'
 
+        with open(f'data/optimization_results/configs/{filename}', 'w+') as fp:
+            json.dump(result_dict, fp)
         print('Results saved successfully')
 
     def test_optimizator(self, geometry, value=0, iterations=1, progress_bar=True):
@@ -64,6 +104,8 @@ class Optimizator:
             frequency=6400,
             sphere_radius=20 * 1e-3
     ):
+        np.random.seed(seed)
+
         print(length_limits, iterations, seed, frequency, sphere_radius)
         N = int(np.sqrt(len(geometry.wires)))
 
@@ -81,11 +123,11 @@ class Optimizator:
                 l = (np.sqrt(sphere_radius ** 2 - x[i] ** 2 - y[j] ** 2))
                 bounds.append([length_limits[0], 2 * l])
         bounds = np.array(bounds)
-    #
-    #     # Пределы, НЕ учитывающие, что при приближении к центру
-    #     # Высота провода может увеличиваться
-    #     # bounds = np.array([[length_limits[0], length_limits[1]] for i in range(N * N)])
-    #
+
+        # Пределы, НЕ учитывающие, что при приближении к центру
+        # Высота провода может увеличиваться
+        # bounds = np.array([[length_limits[0], length_limits[1]] for i in range(N * N)])
+
         lower_bounds, upper_bounds = bounds[:, 0], bounds[:, 1]
         mean = lower_bounds + (np.random.rand(N * N) * (upper_bounds - lower_bounds))
         sigma = 2 * (upper_bounds[0] - lower_bounds[0]) / 5
@@ -101,6 +143,7 @@ class Optimizator:
         cnt = 0
         max_value = 0
         max_lengths = []
+
         pbar = tqdm(range(iterations))
         for generation in pbar:
             solutions = []
@@ -126,9 +169,10 @@ class Optimizator:
             lengths_of_wires=np.array(max_lengths).reshape(N, N)
         )
 
-        self.best_results['geometry'] = best_geometry
-        self.best_results['optimized_value'] = max_value
+        results = {
+            'geometry': best_geometry,
+            'optimized_value': max_value
+        }
+        self.best_results['CMA-ES'] = results
 
-        plot_geometry_3d(best_geometry)
-
-        return max_lengths, max_value
+        return best_geometry, max_value

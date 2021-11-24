@@ -4,9 +4,9 @@ test:
   progress_bar: True
 
 CMA-ES:
-  tau: 0.009
-  length_limits: [0, 0.01]
-  iterations: 10
-  seed: 42
-  frequency: 6400
-  sphere_radius: 0.02
+  tau: 0.011
+  length_limits: [0, 0.015]
+  iterations: 13
+  seed: 45
+  frequency: 6000
+  sphere_radius: 0.025

@@ -1,0 +1,6 @@
+.idea
+data/optimization_results/configs
+data/optimization_results/images
+**/__pycache__
+*.pyc
+*.pyo

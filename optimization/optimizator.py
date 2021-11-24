@@ -106,7 +106,7 @@ class Optimizator:
     ):
         np.random.seed(seed)
 
-        print(length_limits, iterations, seed, frequency, sphere_radius)
+        # print(length_limits, iterations, seed, frequency, sphere_radius)
         N = int(np.sqrt(len(geometry.wires)))
 
         if tau * (N - 1) > 2 * sphere_radius:
@@ -160,7 +160,7 @@ class Optimizator:
                     cnt += 1
 
                 solutions.append((lengths, value))
-                pbar.set_description("Processing %s generation\t max %s" % (generation, round(max_value, 5)))
+                pbar.set_description("Processed %s generation\t max %s" % (generation, round(max_value, 5)))
 
             optimizer.tell(solutions)
 

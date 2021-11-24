@@ -1,12 +1,14 @@
+num_cpu: 2
+
 test:
   value: 2
   iterations: 10
   progress_bar: True
 
 CMA-ES:
-  tau: 0.011
-  length_limits: [0, 0.015]
-  iterations: 13
+  tau: 0.009
+  length_limits: [0, 0.02]
+  iterations: 300
   seed: 45
   frequency: 6000
   sphere_radius: 0.025

@@ -1,29 +1,39 @@
 import yaml
-import matplotlib.pyplot as plt
+import ray
 from geometry.simple_geometries import get_cubic_geometry, my_anapole
 from optimization import Optimizator
-from plotting_utils import scattering_plot
 
 
 with open('optimization/optimization_config.yml', "r") as yml_config:
     optimization_config = yaml.safe_load(yml_config)
 
 
-if __name__ == '__main__':
+@ray.remote
+def optimize_geometries(config, save=False):
     geometry = get_cubic_geometry(2 * 1e-3)
     optimizator = Optimizator(kind='CMA-ES')
-    res = optimizator.run(geometry, optimization_config['CMA-ES'])
+    res = optimizator.run(geometry, config['CMA-ES'])
 
-    optimizator.plot_results(save=True)
-    optimizator.save_results()
-    #
-    # geometry_anapole = my_anapole()
-    #
-    # fig, ax = plt.subplots(1)
-    # scattering_plot(
-    #     ax, geometry_anapole,
-    #     frequency_start=200,
-    #     frequency_finish=1500,
-    #     step=5
-    # )
-    # plt.show()
+    optimizator.plot_results(save=save)
+    if save:
+        optimizator.save_results()
+    return config
+
+
+if __name__ == '__main__':
+    ray.init(num_cpus=optimization_config['num_cpu'])
+
+    seeds = [10, 20, 30, 40]
+    iters = [10]
+
+    result_ids = []
+    for seed in seeds:
+        optimization_config['CMA-ES']['seed'] = seed
+        result_ids.append(optimize_geometries.remote(optimization_config, True))
+
+    # for it in iters:
+    #     optimization_config['CMA-ES']['iterations'] = it
+    #     result_ids.append(optimize_geometries.remote(optimization_config))
+
+    results = ray.get(result_ids)
+    print(results)

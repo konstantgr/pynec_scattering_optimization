@@ -33,6 +33,7 @@ def scattering_plot(
     ax.set_title(title, fontsize=16)
     ax.set_xlabel('Frequency (MHz)', fontsize=16)
     ax.set_ylabel('Scattering', fontsize=16)
+    ax.axvline(frequency_range[np.argmax(scattering)], color='grey', alpha=0.5)
     ax.plot(frequency_range, scattering, label='PyNEC')
 
 

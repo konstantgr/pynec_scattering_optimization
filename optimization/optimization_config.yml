@@ -6,8 +6,8 @@ test:
   progress_bar: True
 
 CMA-ES:
-  tau: 0.009
-  length_limits: [0, 0.02]
+  tau: 0.005
+  length_limits: [0, 0.005]
   iterations: 300
   seed: 45
   frequency: 6000

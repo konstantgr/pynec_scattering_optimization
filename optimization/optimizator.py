@@ -22,6 +22,9 @@ class Optimizator:
         self.best_results = {}
 
         self._opt = self.optimizators_mapping[kind]
+
+        self.scat = None
+        self.lengths = None
     #
     # def get_target_parameters(self, geometry, target='lengths'):
     #     return geometry
@@ -39,7 +42,9 @@ class Optimizator:
 
         fig = plt.figure(figsize=plt.figaspect(2.))
         ax = fig.add_subplot(2, 1, 2)
-        scattering_plot(ax, best_geometry)
+
+        scat = scattering_plot(ax, best_geometry)
+        self.scat = scat
 
         ax = fig.add_subplot(2, 1, 1, projection='3d')
         plot_geometry_3d(ax, best_geometry)
@@ -174,5 +179,6 @@ class Optimizator:
             'optimized_value': max_value
         }
         self.best_results['CMA-ES'] = results
+        self.lengths = results['geometry']
 
         return best_geometry, max_value

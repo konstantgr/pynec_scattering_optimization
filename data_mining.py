@@ -3,6 +3,7 @@ import ray
 import numpy as np
 from geometry.simple_geometries import get_cubic_geometry, my_anapole
 from optimization import Optimizator
+import json
 
 
 with open('optimization/optimization_config.yml', "r") as yml_config:
@@ -19,24 +20,24 @@ def optimize_geometries(config, save=False):
     if save:
         optimizator.save_results()
 
-    return config
+    out = {
+        "spectra": list(optimizator.scat),
+        "lengths": [i.length for i in optimizator.lengths.wires]
+    }
+
+    return out
 
 
 if __name__ == '__main__':
     ray.init(num_cpus=optimization_config['num_cpu'])
+    np.random.seed(1)
 
-    print(optimization_config)
-    seeds = [10, 20]
-    iters = [10]
-
+    resonance_frequencies = np.random.randint(5000, 6000, 10)
     result_ids = []
-    for seed in seeds:
-        optimization_config['CMA-ES']['seed'] = seed
+    for freq in resonance_frequencies:
+        optimization_config['CMA-ES']['frequency'] = int(freq)
         result_ids.append(optimize_geometries.remote(optimization_config, False))
 
-    # for it in iters:
-    #     optimization_config['CMA-ES']['iterations'] = it
-    #     result_ids.append(optimize_geometries.remote(optimization_config))
-
     results = ray.get(result_ids)
-    print(results)
+    with open('data/optimization_results/databases/spectra_geometries.json', 'w') as fout:
+        json.dump(results, fout)

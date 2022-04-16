@@ -8,7 +8,7 @@ test:
 CMA-ES:
   tau: 0.005
   length_limits: [0, 0.005]
-  iterations: 300
+  iterations: 5
   seed: 45
   frequency: 6000
   sphere_radius: 0.025
